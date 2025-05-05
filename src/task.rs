@@ -54,7 +54,7 @@ impl From<&Task> for ListItem<'_> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct TaskList {
     pub task_list: Vec<Task>,
     pub state: ListState,
@@ -62,10 +62,7 @@ pub struct TaskList {
 
 impl TaskList {
     pub fn new() -> Self {
-        Self {
-            task_list: Vec::new(),
-            state: ListState::default(),
-        }
+        Self::default()
     }
 
     pub fn add_task(&mut self, description: String) {

@@ -20,11 +20,9 @@ pub enum InputMode {
 /// Application.
 #[derive(Debug)]
 pub struct App {
-    /// Is the application running?
     pub running: bool,
-    /// Counter.
+    pub show_helper_popup: bool,
     pub task_list: TaskList,
-    /// Event handler.
     pub events: EventHandler,
     pub input: InputField,
     pub input_mode: InputMode,
@@ -47,6 +45,7 @@ impl App {
 
         Ok(Self {
             running: true,
+            show_helper_popup: false,
             task_list,
             storage,
             events: EventHandler::new(),
@@ -96,6 +95,8 @@ impl App {
                     KeyCode::Char('k') => self.task_list.select_previous(),
                     KeyCode::Char('d') => self.task_list.delete_selected_task(),
                     KeyCode::Enter => self.toggle_task(),
+                    KeyCode::Char('h') => self.show_helper_popup = true,
+                    KeyCode::Esc if self.show_helper_popup => self.show_helper_popup = false,
                     _ => {}
                 }
             }
@@ -151,6 +152,10 @@ impl App {
     pub fn delete_selected_task(&mut self) {
         self.task_list.delete_selected_task();
         self.auto_save();
+    }
+
+    pub fn toggle_helper_popup(&mut self) {
+        self.show_helper_popup = !self.show_helper_popup;
     }
 
     /// Handles the tick event of the terminal.

@@ -36,12 +36,7 @@ impl Widget for &mut App {
 
         self.render_task_list(list_area, buf);
         self.input.textarea().render(input_area, buf);
-
-        let text = "Press `Ctrl-C` or `q` to quit delibird. Press `n` to add task.".to_string();
-
-        let paragraph = Paragraph::new(text).centered();
-
-        paragraph.render(footer_area, buf);
+        self.render_footer(footer_area, buf);
     }
 }
 
@@ -80,5 +75,26 @@ impl App {
         // same method name `render`.
 
         StatefulWidget::render(list, area, buf, &mut self.task_list.state);
+    }
+
+    fn render_footer(&mut self, area: Rect, buf: &mut Buffer) {
+        let full_text = "Add Task: n | Previous: k | Next: j | Toggle Complete: <space> | Delete Task: d | Cancel: <esc> | Quit: q".to_string();
+        let short_text = "Add: n | Previous: k | Next: j | Toggle: <space> | Delete: d | Cancel: <esc> | Quit: q".to_string();
+        let tiny_text = "Add:n | Toggle:<space> | Quit:q".to_string();
+
+        // Get the width of the footer area
+        let width = area.width;
+
+        // Choose text based on available width
+        let text = if width >= full_text.len() as u16 {
+            full_text
+        } else if width >= short_text.len() as u16 {
+            short_text
+        } else {
+            tiny_text
+        };
+
+        let paragraph = Paragraph::new(text).centered();
+        paragraph.render(area, buf);
     }
 }
