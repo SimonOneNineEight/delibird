@@ -94,6 +94,7 @@ impl App {
                     }
                     KeyCode::Char('j') => self.task_list.select_next(),
                     KeyCode::Char('k') => self.task_list.select_previous(),
+                    KeyCode::Char('d') => self.task_list.delete_selected_task(),
                     KeyCode::Enter => self.toggle_task(),
                     _ => {}
                 }
@@ -144,6 +145,11 @@ impl App {
 
     pub fn toggle_task(&mut self) {
         self.task_list.toggle_status();
+        self.auto_save();
+    }
+
+    pub fn delete_selected_task(&mut self) {
+        self.task_list.delete_selected_task();
         self.auto_save();
     }
 

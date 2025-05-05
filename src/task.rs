@@ -72,6 +72,12 @@ impl TaskList {
         self.task_list.push(Task::new(description));
     }
 
+    pub fn delete_selected_task(&mut self) {
+        if let Some(i) = self.state.selected() {
+            self.task_list.remove(i);
+        }
+    }
+
     pub fn toggle_status(&mut self) {
         if let Some(i) = self.state.selected() {
             self.task_list[i].status = match self.task_list[i].status {
