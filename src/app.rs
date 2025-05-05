@@ -1,12 +1,14 @@
 use crate::{
     event::{AppEvent, Event, EventHandler},
     input::InputField,
+    storage::Storage,
     task::TaskList,
 };
 use ratatui::{
     DefaultTerminal,
     crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
 };
+use std::{fs, path::PathBuf};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum InputMode {
@@ -26,26 +28,32 @@ pub struct App {
     pub events: EventHandler,
     pub input: InputField,
     pub input_mode: InputMode,
-}
-
-impl Default for App {
-    fn default() -> Self {
-        Self {
-            running: true,
-            task_list: TaskList::new(),
-            events: EventHandler::new(),
-            input: InputField::default(),
-            input_mode: InputMode::Normal,
-        }
-    }
+    pub storage: Storage,
 }
 
 impl App {
     /// Constructs a new instance of [`App`].
-    pub fn new() -> Self {
-        Self::default()
-    }
+    pub fn new() -> Result<Self, String> {
+        let file_path = Self::initialize_storage()?;
+        let storage = Storage::new(file_path);
 
+        let mut task_list = TaskList::new();
+
+        if let Ok(tasks) = storage.load() {
+            for task in tasks {
+                task_list.task_list.push(task);
+            }
+        }
+
+        Ok(Self {
+            running: true,
+            task_list,
+            storage,
+            events: EventHandler::new(),
+            input: InputField::default(),
+            input_mode: InputMode::Normal,
+        })
+    }
     /// Run the application's main loop.
     pub fn run(mut self, mut terminal: DefaultTerminal) -> color_eyre::Result<()> {
         while self.running {
@@ -86,7 +94,7 @@ impl App {
                     }
                     KeyCode::Char('j') => self.task_list.select_next(),
                     KeyCode::Char('k') => self.task_list.select_previous(),
-                    KeyCode::Enter => self.task_list.toggle_status(),
+                    KeyCode::Enter => self.toggle_task(),
                     _ => {}
                 }
             }
@@ -96,8 +104,7 @@ impl App {
                     self.input.style_textarea(InputMode::Normal);
                 }
                 KeyCode::Enter => {
-                    self.task_list
-                        .add_task(self.input.textarea().lines()[0].clone());
+                    self.add_task(self.input.textarea().lines()[0].clone());
                     self.input.clear();
                 }
                 _ => {
@@ -108,7 +115,37 @@ impl App {
         Ok(())
     }
 
-    pub fn toggle_edit(&self) {}
+    pub fn initialize_storage() -> Result<PathBuf, String> {
+        let config_dir = dirs::config_dir().ok_or("Connot find config directory")?;
+        let app_dir = config_dir.join("delibird");
+
+        if !app_dir.exists() {
+            fs::create_dir_all(&app_dir)
+                .map_err(|err| format!("Failed to create directory: {}", err))?;
+        }
+
+        Ok(app_dir.join("tasks.json"))
+    }
+
+    pub fn save_tasks(&self) -> Result<(), String> {
+        self.storage.save(&self.task_list.task_list)
+    }
+
+    pub fn auto_save(&self) {
+        if let Err(err) = self.save_tasks() {
+            eprintln!("Failed to save task: {}", err);
+        }
+    }
+
+    pub fn add_task(&mut self, description: String) {
+        self.task_list.add_task(description);
+        self.auto_save();
+    }
+
+    pub fn toggle_task(&mut self) {
+        self.task_list.toggle_status();
+        self.auto_save();
+    }
 
     /// Handles the tick event of the terminal.
     ///

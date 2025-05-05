@@ -1,30 +1,27 @@
 use chrono::{DateTime, Local};
 use ratatui::{
-    buffer::Buffer,
-    layout::Rect,
     style::{
         Color, Modifier, Style,
         palette::{material::GREEN, tailwind::SLATE},
     },
-    symbols,
     text::Line,
-    widgets::{
-        Block, BorderType, Borders, List, ListItem, ListState, StatefulWidget, block::title,
-    },
+    widgets::{ListItem, ListState},
 };
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 const TEXT_FG_COLOR: Color = SLATE.c200;
 const COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
 pub const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 enum Status {
     Todo,
     Completed,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Task {
     id: Uuid,
     description: String,
@@ -59,8 +56,8 @@ impl From<&Task> for ListItem<'_> {
 
 #[derive(Debug)]
 pub struct TaskList {
-    task_list: Vec<Task>,
-    state: ListState,
+    pub task_list: Vec<Task>,
+    pub state: ListState,
 }
 
 impl TaskList {
@@ -69,14 +66,6 @@ impl TaskList {
             task_list: Vec::new(),
             state: ListState::default(),
         }
-    }
-
-    pub fn get_tasks(&self) -> Vec<Task> {
-        self.task_list.clone()
-    }
-
-    pub fn get_state(&self) -> ListState {
-        self.state.clone()
     }
 
     pub fn add_task(&mut self, description: String) {

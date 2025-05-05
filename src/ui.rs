@@ -1,8 +1,7 @@
 use ratatui::{
     buffer::Buffer,
-    layout::{Alignment, Constraint, Layout, Rect},
+    layout::{Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
-    symbols,
     text::Line,
     widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, StatefulWidget, Widget},
 };
@@ -38,7 +37,7 @@ impl Widget for &mut App {
         self.render_task_list(list_area, buf);
         self.input.textarea().render(input_area, buf);
 
-        let text = format!("Press `Ctrl-C` or `q` to quit delibird. Press `n` to add task.",);
+        let text = "Press `Ctrl-C` or `q` to quit delibird. Press `n` to add task.".to_string();
 
         let paragraph = Paragraph::new(text).centered();
 
@@ -64,7 +63,7 @@ impl App {
         // Iterate through all elements in the `items` and stylize them.
         let items: Vec<ListItem> = self
             .task_list
-            .get_tasks()
+            .task_list
             .iter()
             .enumerate()
             .map(|(i, todo_item)| ListItem::from(todo_item))
@@ -80,6 +79,6 @@ impl App {
         // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
         // same method name `render`.
 
-        StatefulWidget::render(list, area, buf, &mut self.task_list.get_state());
+        StatefulWidget::render(list, area, buf, &mut self.task_list.state);
     }
 }
