@@ -93,7 +93,7 @@ impl App {
                     }
                     KeyCode::Char('j') => self.task_list.select_next(),
                     KeyCode::Char('k') => self.task_list.select_previous(),
-                    KeyCode::Char('d') => self.task_list.delete_selected_task(),
+                    KeyCode::Char('d') => self.delete_selected_task(),
                     KeyCode::Enter => self.toggle_task(),
                     KeyCode::Char('h') => self.show_helper_popup = true,
                     KeyCode::Esc if self.show_helper_popup => self.show_helper_popup = false,
