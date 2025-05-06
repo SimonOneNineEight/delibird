@@ -10,11 +10,16 @@ A terminal-based todo list application built with [Ratatui](https://ratatui.rs),
 - **Simple Task Management**: Create, toggle, and navigate through your tasks with ease
 - **Keyboard-Driven Interface**: Fast and intuitive keyboard shortcuts for all operations
 - **Beautiful TUI**: Clean, modern terminal UI with customized styling
-- **Persistent Storage**: (Coming soon) Save your tasks between sessions
+- **Persistent Storage**: Your tasks are automatically saved between sessions
+- **Task Prioritization**: Mark tasks as favorites to keep them at the top of your list
+- **Task Status**: Easily track completed and pending tasks with visual indicators
 
-<!-- ## Screenshots -->
-<!---->
-<!-- *Screenshots will be added here* -->
+## Key Components
+
+- **Task Management**: Create, complete, delete and prioritize tasks
+- **Favorite Tasks**: Star important tasks to keep them at the top of your list
+- **Visual Indicators**: Different colors for completed tasks and favorites
+- **Automatic Saving**: Tasks are automatically saved to your config directory
 
 ## Installation
 
@@ -44,15 +49,18 @@ cargo install delibird
 
 Once launched, you can use the following keyboard shortcuts:
 
-| Key      | Action               |
-| -------- | -------------------- |
-| `n`      | Create a new task    |
-| `j`      | Navigate down        |
-| `k`      | Navigate up          |
-| `Enter`  | Toggle selected task |
-| `Esc`    | Exit edit mode       |
-| `q`      | Quit application     |
-| `Ctrl+C` | Quit application     |
+| Key      | Action                     |
+| -------- | -------------------------- |
+| `n`      | Create a new task          |
+| `j`      | Navigate down              |
+| `k`      | Navigate up                |
+| `Enter`  | Toggle task completion     |
+| `d`      | Delete selected task       |
+| `s`      | Toggle favorite status     |
+| `h`      | Show help popup            |
+| `Esc`    | Exit edit mode/Close popup |
+| `q`      | Quit application           |
+| `Ctrl+C` | Quit application           |
 
 ### Adding Tasks
 
@@ -76,17 +84,21 @@ The application follows a modular architecture:
 - `ui.rs`: User interface rendering
 - `main.rs`: Application entry point
 
-<!-- ## Contributing -->
-<!---->
-<!-- Contributions are welcome! Feel free to: -->
-<!---->
-<!-- 1. Fork the repository -->
-<!-- 2. Create a feature branch (`git checkout -b feature/amazing-feature`) -->
-<!-- 3. Commit your changes (`git commit -m 'Add some amazing feature'`) -->
-<!-- 4. Push to the branch (`git push origin feature/amazing-feature`) -->
-<!-- 5. Open a Pull Request -->
-<!---->
-<!-- Please make sure to update tests as appropriate and adhere to the existing coding style. -->
+## Data Storage
+
+Delibird stores your tasks in JSON format at:
+
+- Linux/macOS: `~/.config/delibird/tasks.json`
+- Windows: `%APPDATA%\delibird\tasks.json`
+
+Tasks are automatically saved whenever you make changes.
+
+## Planned Features
+
+- Task categories/tags
+- Due dates
+- Priority levels
+- Search functionality
 
 ## License
 
