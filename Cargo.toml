@@ -9,7 +9,7 @@ edition = "2024"
 [dependencies]
 crossterm = "0.28.1"
 ratatui = "0.29.0"
-color-eyre = "0.6.3"
+color-eyre = "0.6.4"
 uuid = { version = "1.16.0", features = ["serde", "v4"] }
 chrono = { version = "0.4.41", features = ["serde"] }
 tui-textarea = "0.7.0"
