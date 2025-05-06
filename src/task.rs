@@ -2,7 +2,10 @@ use chrono::{DateTime, Local};
 use ratatui::{
     style::{
         Color, Modifier, Style,
-        palette::{material::GREEN, tailwind::SLATE},
+        palette::{
+            material::GREEN,
+            tailwind::{SLATE, YELLOW},
+        },
     },
     text::Line,
     widgets::{ListItem, ListState},
@@ -12,10 +15,11 @@ use uuid::Uuid;
 
 const TEXT_FG_COLOR: Color = SLATE.c200;
 const COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
+const STAR_TEXT_FG_COLOR: Color = YELLOW.c200;
 pub const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-enum Status {
+pub enum Status {
     Todo,
     Completed,
 }
@@ -25,7 +29,8 @@ enum Status {
 pub struct Task {
     id: Uuid,
     description: String,
-    status: Status,
+    pub status: Status,
+    pub is_favorite: bool,
     created_at: DateTime<Local>,
     completed_at: Option<DateTime<Local>>,
 }
@@ -36,6 +41,7 @@ impl Task {
             id: Uuid::new_v4(),
             description,
             status: Status::Todo,
+            is_favorite: false,
             created_at: Local::now(),
             completed_at: None,
         }
@@ -45,10 +51,17 @@ impl Task {
 impl From<&Task> for ListItem<'_> {
     fn from(value: &Task) -> Self {
         let line = match value.status {
-            Status::Todo => Line::styled(format!(" ☐ {}", value.description), TEXT_FG_COLOR),
-            Status::Completed => {
-                Line::styled(format!(" ✓ {}", value.description), COMPLETED_TEXT_FG_COLOR)
+            Status::Todo => {
+                if value.is_favorite {
+                    Line::styled(format!("  ✮ {}", value.description), STAR_TEXT_FG_COLOR)
+                } else {
+                    Line::styled(format!("  ☐ {}", value.description), TEXT_FG_COLOR)
+                }
             }
+            Status::Completed => Line::styled(
+                format!("  ✓ {}", value.description),
+                COMPLETED_TEXT_FG_COLOR,
+            ),
         };
         ListItem::new(line)
     }
@@ -81,6 +94,12 @@ impl TaskList {
                 Status::Todo => Status::Completed,
                 Status::Completed => Status::Todo,
             }
+        }
+    }
+
+    pub fn toggle_favorite(&mut self) {
+        if let Some(i) = self.state.selected() {
+            self.task_list[i].is_favorite = !self.task_list[i].is_favorite
         }
     }
 

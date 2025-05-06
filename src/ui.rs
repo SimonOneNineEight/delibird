@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -8,7 +9,7 @@ use ratatui::{
 
 use crate::{
     app::{App, InputMode},
-    task::SELECTED_STYLE,
+    task::{SELECTED_STYLE, Status},
 };
 
 impl Widget for &mut App {
@@ -60,15 +61,24 @@ impl App {
             .task_list
             .task_list
             .iter()
-            .enumerate()
-            .map(|(i, todo_item)| ListItem::from(todo_item))
+            .sorted_by(|a, b| {
+                let a_completed = a.status == Status::Completed;
+                let b_completed = b.status == Status::Completed;
+
+                if a_completed != b_completed {
+                    return a_completed.cmp(&b_completed);
+                }
+
+                a.is_favorite.cmp(&b.is_favorite).reverse()
+            })
+            .map(ListItem::from)
             .collect();
 
         // Create a List from all list items and highlight the currently selected one
         let list = List::new(items)
             .block(block)
             .highlight_style(SELECTED_STYLE)
-            .highlight_symbol(">")
+            .highlight_symbol(">>")
             .highlight_spacing(ratatui::widgets::HighlightSpacing::Always);
 
         // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
