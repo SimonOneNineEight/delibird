@@ -1,4 +1,3 @@
-use chrono::{DateTime, Local};
 use ratatui::{
     style::{
         Color, Modifier, Style,
@@ -11,6 +10,7 @@ use ratatui::{
     widgets::{ListItem, ListState},
 };
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 use uuid::Uuid;
 
 const TEXT_FG_COLOR: Color = SLATE.c200;
@@ -33,9 +33,10 @@ pub struct Task {
     pub status: Status,
     pub group: Option<String>,
     pub is_favorite: bool,
-    pub due_date: Option<DateTime<Local>>,
-    pub created_at: DateTime<Local>,
-    pub completed_at: Option<DateTime<Local>>,
+    pub due_date: Option<OffsetDateTime>,
+    // Create a List from all list items and highlight the currently selected one
+    pub created_at: OffsetDateTime,
+    pub completed_at: Option<OffsetDateTime>,
 }
 
 impl Task {
@@ -47,7 +48,7 @@ impl Task {
             status: Status::Todo,
             is_favorite: false,
             group: None,
-            created_at: Local::now(),
+            created_at: OffsetDateTime::now_local().unwrap_or_else(|_| OffsetDateTime::now_utc()),
             completed_at: None,
             due_date: None,
         }

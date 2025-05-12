@@ -1,7 +1,7 @@
-use chrono::{DateTime, Local};
 use crossterm::event::KeyEvent;
 use ratatui::style::{Color, Style};
 use strum::{Display, EnumIter, IntoEnumIterator};
+use time::OffsetDateTime;
 use tui_textarea::TextArea;
 
 #[derive(Debug)]
@@ -61,8 +61,8 @@ impl FormFieldAccess<String> for FormField {
     }
 }
 
-impl FormFieldAccess<DateTime<Local>> for FormField {
-    fn access_field<'a, 'b>(&'a self, form: &'b mut FormInput) -> Option<&'b mut DateTime<Local>> {
+impl FormFieldAccess<OffsetDateTime> for FormField {
+    fn access_field<'a, 'b>(&'a self, form: &'b mut FormInput) -> Option<&'b mut OffsetDateTime> {
         match self {
             FormField::DueDate => Some(&mut form.due_date),
             _ => None,
@@ -75,7 +75,7 @@ pub struct FormInput {
     pub title: TextArea<'static>,
     pub description: TextArea<'static>,
     pub group: String,
-    pub due_date: DateTime<Local>,
+    pub due_date: OffsetDateTime,
 }
 
 impl Default for FormInput {
@@ -84,7 +84,7 @@ impl Default for FormInput {
             title: TextArea::default(),
             description: TextArea::default(),
             group: String::new(),
-            due_date: Local::now(),
+            due_date: OffsetDateTime::now_local().unwrap_or_else(|_| OffsetDateTime::now_utc()),
         }
     }
 }
