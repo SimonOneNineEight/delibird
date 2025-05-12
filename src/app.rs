@@ -1,8 +1,8 @@
 use crate::{
     event::{AppEvent, Event, EventHandler},
-    input::InputField,
     storage::Storage,
     task::TaskList,
+    task_form::{FormField, TaskForm},
 };
 use ratatui::{
     DefaultTerminal,
@@ -11,9 +11,10 @@ use ratatui::{
 use std::{fs, path::PathBuf};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub enum InputMode {
+pub enum CurrentScreen {
     #[default]
     Normal,
+    Create,
     Editing,
 }
 
@@ -24,9 +25,9 @@ pub struct App {
     pub show_helper_popup: bool,
     pub task_list: TaskList,
     pub events: EventHandler,
-    pub input: InputField,
-    pub input_mode: InputMode,
+    pub current_screen: CurrentScreen,
     pub storage: Storage,
+    pub task_form: TaskForm,
 }
 
 impl App {
@@ -49,8 +50,8 @@ impl App {
             task_list,
             storage,
             events: EventHandler::new(),
-            input: InputField::default(),
-            input_mode: InputMode::Normal,
+            current_screen: CurrentScreen::Normal,
+            task_form: TaskForm::default(),
         })
     }
     /// Run the application's main loop.
@@ -71,7 +72,9 @@ impl App {
             },
             Event::App(app_event) => match app_event {
                 AppEvent::Quit => self.quit(),
-                AppEvent::AddTask(description) => self.task_list.add_task(description),
+                AppEvent::AddTask(title, description) => {
+                    self.task_list.add_task(title, description)
+                }
             },
         }
         Ok(())
@@ -79,8 +82,8 @@ impl App {
 
     /// Handles the key events and updates the state of [`App`].
     pub fn handle_key_event(&mut self, key_event: KeyEvent) -> color_eyre::Result<()> {
-        match self.input_mode {
-            InputMode::Normal => {
+        match self.current_screen {
+            CurrentScreen::Normal => {
                 match key_event.code {
                     KeyCode::Char('q') => self.events.send(AppEvent::Quit),
                     KeyCode::Char('c' | 'C') if key_event.modifiers == KeyModifiers::CONTROL => {
@@ -88,8 +91,8 @@ impl App {
                     }
                     // Other handlers you could add here.
                     KeyCode::Char('n') => {
-                        self.input_mode = InputMode::Editing;
-                        self.input.style_textarea(InputMode::Editing);
+                        self.current_screen = CurrentScreen::Create;
+                        self.task_form.toggle_task_form();
                     }
                     KeyCode::Char('j') => self.task_list.select_next(),
                     KeyCode::Char('k') => self.task_list.select_previous(),
@@ -101,19 +104,21 @@ impl App {
                     _ => {}
                 }
             }
-            InputMode::Editing => match key_event.code {
+            CurrentScreen::Create => match key_event.code {
                 KeyCode::Esc => {
-                    self.input_mode = InputMode::Normal;
-                    self.input.style_textarea(InputMode::Normal);
+                    self.current_screen = CurrentScreen::Normal;
+                    self.task_form.toggle_task_form();
                 }
                 KeyCode::Enter => {
-                    self.add_task(self.input.textarea().lines()[0].clone());
-                    self.input.clear();
+                    if self.task_form.selected == FormField::Description {
+                        self.task_form.input(key_event);
+                    }
                 }
-                _ => {
-                    self.input.input(key_event);
-                }
+                KeyCode::Tab => self.task_form.select_next(),
+                _ => self.task_form.input(key_event),
             },
+
+            CurrentScreen::Editing => {}
         }
         Ok(())
     }
@@ -140,8 +145,8 @@ impl App {
         }
     }
 
-    pub fn add_task(&mut self, description: String) {
-        self.task_list.add_task(description);
+    pub fn add_task(&mut self, title: String, description: String) {
+        self.task_list.add_task(title, description);
         self.auto_save();
     }
 

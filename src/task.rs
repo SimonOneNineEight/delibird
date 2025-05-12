@@ -28,22 +28,28 @@ pub enum Status {
 #[serde(rename_all = "camelCase")]
 pub struct Task {
     id: Uuid,
-    description: String,
+    pub title: String,
+    pub description: String,
     pub status: Status,
+    pub group: Option<String>,
     pub is_favorite: bool,
-    created_at: DateTime<Local>,
-    completed_at: Option<DateTime<Local>>,
+    pub due_date: Option<DateTime<Local>>,
+    pub created_at: DateTime<Local>,
+    pub completed_at: Option<DateTime<Local>>,
 }
 
 impl Task {
-    pub fn new(description: String) -> Self {
+    pub fn new(title: String, description: String) -> Self {
         Self {
             id: Uuid::new_v4(),
+            title,
             description,
             status: Status::Todo,
             is_favorite: false,
+            group: None,
             created_at: Local::now(),
             completed_at: None,
+            due_date: None,
         }
     }
 }
@@ -78,8 +84,12 @@ impl TaskList {
         Self::default()
     }
 
-    pub fn add_task(&mut self, description: String) {
-        self.task_list.push(Task::new(description));
+    pub fn add_task(&mut self, title: String, description: String) {
+        self.task_list.push(Task::new(title, description));
+    }
+
+    pub fn get_selected_task(&self) -> Option<&Task> {
+        self.state.selected().map(|i| &self.task_list[i])
     }
 
     pub fn delete_selected_task(&mut self) {

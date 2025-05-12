@@ -37,7 +37,7 @@ pub enum AppEvent {
     Quit,
 
     /// Tasks
-    AddTask(String),
+    AddTask(String, String),
     // ToggleTask(Uuid),
     // EditTask(Uuid, String),
     // DeleteTask(Uuid),
