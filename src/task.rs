@@ -10,8 +10,10 @@ use ratatui::{
     widgets::{ListItem, ListState},
 };
 use serde::{Deserialize, Serialize};
-use time::OffsetDateTime;
+use time::{Date, OffsetDateTime};
 use uuid::Uuid;
+
+use crate::task_form::FormInput;
 
 const TEXT_FG_COLOR: Color = SLATE.c200;
 const COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
@@ -29,28 +31,29 @@ pub enum Status {
 pub struct Task {
     id: Uuid,
     pub title: String,
-    pub description: String,
+    pub description: Vec<String>,
     pub status: Status,
-    pub group: Option<String>,
+    // pub group: Option<String>,
     pub is_favorite: bool,
-    pub due_date: Option<OffsetDateTime>,
-    // Create a List from all list items and highlight the currently selected one
-    pub created_at: OffsetDateTime,
-    pub completed_at: Option<OffsetDateTime>,
+    pub due_date: Option<Date>,
+    pub created_at: Date,
+    pub completed_at: Option<Date>,
 }
 
 impl Task {
-    pub fn new(title: String, description: String) -> Self {
+    pub fn new(task: FormInput) -> Self {
         Self {
             id: Uuid::new_v4(),
-            title,
-            description,
+            title: task.title.lines()[0].clone(),
+            description: task.description.into_lines(),
             status: Status::Todo,
             is_favorite: false,
-            group: None,
-            created_at: OffsetDateTime::now_local().unwrap_or_else(|_| OffsetDateTime::now_utc()),
+            // group: None,
+            created_at: OffsetDateTime::now_local()
+                .unwrap_or_else(|_| OffsetDateTime::now_utc())
+                .date(),
             completed_at: None,
-            due_date: None,
+            due_date: Some(task.due_date.selected_date),
         }
     }
 }
@@ -60,15 +63,14 @@ impl From<&Task> for ListItem<'_> {
         let line = match value.status {
             Status::Todo => {
                 if value.is_favorite {
-                    Line::styled(format!("  ✮ {}", value.description), STAR_TEXT_FG_COLOR)
+                    Line::styled(format!("  ✮ {}", value.title), STAR_TEXT_FG_COLOR)
                 } else {
-                    Line::styled(format!("  ☐ {}", value.description), TEXT_FG_COLOR)
+                    Line::styled(format!("  ☐ {}", value.title), TEXT_FG_COLOR)
                 }
             }
-            Status::Completed => Line::styled(
-                format!("  ✓ {}", value.description),
-                COMPLETED_TEXT_FG_COLOR,
-            ),
+            Status::Completed => {
+                Line::styled(format!("  ✓ {}", value.title), COMPLETED_TEXT_FG_COLOR)
+            }
         };
         ListItem::new(line)
     }
@@ -85,8 +87,8 @@ impl TaskList {
         Self::default()
     }
 
-    pub fn add_task(&mut self, title: String, description: String) {
-        self.task_list.push(Task::new(title, description));
+    pub fn add_task(&mut self, task: FormInput) {
+        self.task_list.push(Task::new(task));
     }
 
     pub fn get_selected_task(&self) -> Option<&Task> {

@@ -7,9 +7,12 @@ use ratatui::{
     text::Line,
     widgets::{
         Block, BorderType, Borders, Clear, List, ListItem, Padding, Paragraph, StatefulWidget,
-        Widget, block::Position,
+        Widget,
+        block::Position,
+        calendar::{CalendarEventStore, Monthly},
     },
 };
+use time::macros::format_description;
 use tui_textarea::TextArea;
 
 use crate::{
@@ -43,7 +46,6 @@ impl Widget for &mut App {
 
         self.render_task_list(list_area, buf);
         self.render_detail(detail_area, buf);
-        // self.input.textarea().render(input_area, buf);
         self.render_footer(footer_area, buf);
 
         if self.task_form.is_open {
@@ -83,15 +85,11 @@ impl App {
                 .map(ListItem::from)
                 .collect();
 
-            // Create a List from all list items and highlight the currently selected one
             let list = List::new(items)
                 .block(block)
                 .highlight_style(SELECTED_STYLE)
                 .highlight_symbol(">>")
                 .highlight_spacing(ratatui::widgets::HighlightSpacing::Always);
-
-            // We need to disambiguate this trait method as both `Widget` and `StatefulWidget` share the
-            // same method name `render`.
 
             StatefulWidget::render(list, area, buf, &mut self.task_list.state);
         }
@@ -107,7 +105,7 @@ impl App {
         block.render(area, buf);
 
         if let Some(task) = self.task_list.get_selected_task() {
-            let details = vec![Line::raw(format!("Description: \n {}", task.description))];
+            let details = vec![Line::raw(format!("Description: \n {}", task.title))];
 
             Paragraph::new(details)
                 .block(Block::default())
@@ -142,18 +140,7 @@ impl App {
     }
 
     fn render_add_task_popup(&mut self, area: Rect, buf: &mut Buffer) {
-        let popup_width = 90.min(area.width.saturating_sub(4));
-        let popup_height = 20.min(area.height.saturating_sub(4));
-
-        let popup_x = (area.width.saturating_sub(popup_width)) / 2;
-        let popup_y = (area.height.saturating_sub(popup_height)) / 2;
-
-        let popup_area = Rect::new(
-            area.x + popup_x,
-            area.y + popup_y,
-            popup_width,
-            popup_height,
-        );
+        let popup_area = get_center_rect(90, 20, area);
 
         Clear.render(popup_area, buf);
 
@@ -169,19 +156,25 @@ impl App {
 
         popup_block.render(popup_area, buf);
 
-        let [title_area, description_area] =
-            Layout::vertical([Constraint::Length(3), Constraint::Fill(1)]).areas(inner_area);
+        let [title_area, due_date_area, description_area] = Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Length(3),
+            Constraint::Fill(1),
+        ])
+        .areas(inner_area);
 
-        self.render_popup_form_field(title_area, buf, "Title".to_string(), FormField::Title);
-        self.render_popup_form_field(
+        self.render_popup_form_textarea(title_area, buf, "Title".to_string(), FormField::Title);
+
+        self.render_popup_form_textarea(
             description_area,
             buf,
             "Description".to_string(),
             FormField::Description,
         );
+        self.render_popup_form_date(area, due_date_area, buf);
     }
 
-    pub fn render_popup_form_field(
+    pub fn render_popup_form_textarea(
         &mut self,
         area: Rect,
         buf: &mut Buffer,
@@ -207,4 +200,32 @@ impl App {
 
         textarea.render(area, buf);
     }
+
+    pub fn render_popup_form_date(&mut self, total_area: Rect, input_area: Rect, buf: &mut Buffer) {
+        let border_style = self.task_form.get_input_border_style(FormField::DueDate);
+        let cursor_style = self.task_form.get_cursor_style(FormField::DueDate);
+
+        self.task_form.form_input.due_date.render(
+            total_area,
+            input_area,
+            buf,
+            border_style,
+            cursor_style,
+        );
+    }
+}
+
+pub fn get_center_rect(width: u16, height: u16, area: Rect) -> Rect {
+    let popup_width = width.min(area.width.saturating_sub(4));
+    let popup_height = height.min(area.height.saturating_sub(4));
+
+    let popup_x = (area.width.saturating_sub(popup_width)) / 2;
+    let popup_y = (area.height.saturating_sub(popup_height)) / 2;
+
+    Rect::new(
+        area.x + popup_x,
+        area.y + popup_y,
+        popup_width,
+        popup_height,
+    )
 }

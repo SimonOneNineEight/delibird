@@ -1,8 +1,10 @@
 use crossterm::event::KeyEvent;
 use ratatui::style::{Color, Style};
 use strum::{Display, EnumIter, IntoEnumIterator};
-use time::OffsetDateTime;
+use time::{Date, OffsetDateTime};
 use tui_textarea::TextArea;
+
+use crate::date_input::DateInput;
 
 #[derive(Debug)]
 pub struct TaskForm {
@@ -14,9 +16,9 @@ pub struct TaskForm {
 #[derive(Debug, EnumIter, Display, Clone, Copy, Eq, PartialEq)]
 pub enum FormField {
     Title,
-    Description,
-    Group,
     DueDate,
+    Description,
+    // Group,
 }
 
 impl FormField {
@@ -52,17 +54,17 @@ impl FormFieldAccess<TextArea<'static>> for FormField {
     }
 }
 
-impl FormFieldAccess<String> for FormField {
-    fn access_field<'a, 'b>(&'a self, form: &'b mut FormInput) -> Option<&'b mut String> {
-        match self {
-            FormField::Group => Some(&mut form.group),
-            _ => None,
-        }
-    }
-}
+// impl FormFieldAccess<String> for FormField {
+//     fn access_field<'a, 'b>(&'a self, form: &'b mut FormInput) -> Option<&'b mut String> {
+//         match self {
+//             FormField::Group => Some(&mut form.group),
+//             _ => None,
+//         }
+//     }
+// }
 
-impl FormFieldAccess<OffsetDateTime> for FormField {
-    fn access_field<'a, 'b>(&'a self, form: &'b mut FormInput) -> Option<&'b mut OffsetDateTime> {
+impl FormFieldAccess<DateInput> for FormField {
+    fn access_field<'a, 'b>(&'a self, form: &'b mut FormInput) -> Option<&'b mut DateInput> {
         match self {
             FormField::DueDate => Some(&mut form.due_date),
             _ => None,
@@ -70,12 +72,12 @@ impl FormFieldAccess<OffsetDateTime> for FormField {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FormInput {
     pub title: TextArea<'static>,
     pub description: TextArea<'static>,
     pub group: String,
-    pub due_date: OffsetDateTime,
+    pub due_date: DateInput,
 }
 
 impl Default for FormInput {
@@ -84,7 +86,7 @@ impl Default for FormInput {
             title: TextArea::default(),
             description: TextArea::default(),
             group: String::new(),
-            due_date: OffsetDateTime::now_local().unwrap_or_else(|_| OffsetDateTime::now_utc()),
+            due_date: DateInput::new(),
         }
     }
 }
@@ -134,7 +136,11 @@ impl TaskForm {
                 }
             }
 
-            _ => {}
+            FormField::DueDate => {
+                if let Some(date_input) = self.access_current_field::<DateInput>() {
+                    date_input.handle_input(key);
+                }
+            }
         }
     }
 

@@ -1,8 +1,9 @@
 use crate::{
+    date_input::DateInputMode,
     event::{AppEvent, Event, EventHandler},
     storage::Storage,
     task::TaskList,
-    task_form::{FormField, TaskForm},
+    task_form::{FormField, FormInput, TaskForm},
 };
 use ratatui::{
     DefaultTerminal,
@@ -72,9 +73,7 @@ impl App {
             },
             Event::App(app_event) => match app_event {
                 AppEvent::Quit => self.quit(),
-                AppEvent::AddTask(title, description) => {
-                    self.task_list.add_task(title, description)
-                }
+                AppEvent::AddTask(task) => self.task_list.add_task(task),
             },
         }
         Ok(())
@@ -106,14 +105,17 @@ impl App {
             }
             CurrentScreen::Create => match key_event.code {
                 KeyCode::Esc => {
-                    self.current_screen = CurrentScreen::Normal;
-                    self.task_form.toggle_task_form();
-                }
-                KeyCode::Enter => {
-                    if self.task_form.selected == FormField::Description {
-                        self.task_form.input(key_event);
+                    if self.task_form.form_input.due_date.input_mode == DateInputMode::Calendar {
+                        self.task_form.form_input.due_date.toggle_date_input_mode();
+                    } else {
+                        self.current_screen = CurrentScreen::Normal;
+                        self.task_form.toggle_task_form();
                     }
                 }
+                KeyCode::Enter if key_event.modifiers == KeyModifiers::CONTROL => {
+                    self.add_task();
+                }
+
                 KeyCode::Tab => self.task_form.select_next(),
                 _ => self.task_form.input(key_event),
             },
@@ -145,8 +147,9 @@ impl App {
         }
     }
 
-    pub fn add_task(&mut self, title: String, description: String) {
-        self.task_list.add_task(title, description);
+    pub fn add_task(&mut self) {
+        println!("add task");
+        self.task_list.add_task(self.task_form.form_input.clone());
         self.auto_save();
     }
 
