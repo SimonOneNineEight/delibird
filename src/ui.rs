@@ -7,9 +7,7 @@ use ratatui::{
     text::Line,
     widgets::{
         Block, BorderType, Borders, Clear, List, ListItem, Padding, Paragraph, StatefulWidget,
-        Widget,
-        block::Position,
-        calendar::{CalendarEventStore, Monthly},
+        Widget, block::Position,
     },
 };
 use time::macros::format_description;
@@ -102,14 +100,57 @@ impl App {
             .border_type(BorderType::Rounded);
 
         let detail_area = block.inner(area);
+
+        let [title_area, due_date_area, description_area] = Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Length(2),
+            Constraint::Fill(1),
+        ])
+        .areas(detail_area);
+
         block.render(area, buf);
 
         if let Some(task) = self.task_list.get_selected_task() {
-            let details = vec![Line::raw(format!("Description: \n {}", task.title))];
+            let status = if task.status == Status::Todo {
+                Line::from("Todo").style(
+                    Style::default()
+                        .fg(Color::LightGreen)
+                        .add_modifier(Modifier::ITALIC),
+                )
+            } else {
+                Line::from("Complete").style(
+                    Style::default()
+                        .fg(Color::Red)
+                        .add_modifier(Modifier::ITALIC),
+                )
+            };
+            let title = vec![status, Line::from(task.title.clone())];
+            let due_date = task
+                .due_date
+                .unwrap()
+                .format(format_description!("[year]-[month]-[day]"))
+                .unwrap_or_else(|_| "No Due Date".to_string());
 
-            Paragraph::new(details)
+            let description: Vec<Line> = task
+                .description
+                .iter()
+                .map(|line| Line::from(line.as_str()))
+                .collect();
+
+            Paragraph::new(title)
                 .block(Block::default())
-                .render(detail_area, buf);
+                .style(Style::default().fg(Color::White))
+                .render(title_area, buf);
+
+            Paragraph::new(due_date)
+                .block(Block::default())
+                .style(Style::default().fg(Color::White))
+                .render(due_date_area, buf);
+
+            Paragraph::new(description)
+                .block(Block::default())
+                .style(Style::default().fg(Color::White))
+                .render(description_area, buf);
         } else {
             Paragraph::new("No Task Selected!")
                 .block(Block::default())
@@ -119,9 +160,9 @@ impl App {
     }
 
     fn render_footer(&mut self, area: Rect, buf: &mut Buffer) {
-        let full_text = "Add Task: n | Previous: k | Next: j | Toggle Complete: <space> | Delete Task: d | Cancel: <esc> | Quit: q".to_string();
-        let short_text = "Add: n | Previous: k | Next: j | Toggle: <space> | Delete: d | Cancel: <esc> | Quit: q".to_string();
-        let tiny_text = "Add:n | Toggle:<space> | Quit:q".to_string();
+        let full_text = "Add Task: n | Previous: k | Next: j | Toggle Complete: <Enter> | Delete Task: d | Cancel: <esc> | Quit: q".to_string();
+        let short_text = "Add: n | Previous: k | Next: j | Toggle: <Enter> | Delete: d | Cancel: <esc> | Quit: q".to_string();
+        let tiny_text = "Add:n | Toggle:<Enter> | Quit:q".to_string();
 
         // Get the width of the footer area
         let width = area.width;

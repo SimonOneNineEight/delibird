@@ -112,7 +112,7 @@ impl App {
                         self.task_form.toggle_task_form();
                     }
                 }
-                KeyCode::Enter if key_event.modifiers == KeyModifiers::CONTROL => {
+                KeyCode::Char('s') if key_event.modifiers == KeyModifiers::CONTROL => {
                     self.add_task();
                 }
 
@@ -148,9 +148,10 @@ impl App {
     }
 
     pub fn add_task(&mut self) {
-        println!("add task");
         self.task_list.add_task(self.task_form.form_input.clone());
+        self.task_form.reset_form_input();
         self.auto_save();
+        self.current_screen = CurrentScreen::Normal;
     }
 
     pub fn toggle_task(&mut self) {

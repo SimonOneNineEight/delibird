@@ -1,7 +1,7 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{
     buffer::Buffer,
-    layout::{Constraint, Layout, Rect},
+    layout::Rect,
     style::{Color, Style},
     text::Line,
     widgets::{
@@ -222,7 +222,7 @@ impl DateInput {
                     .format(&time::format_description::parse(self.date_format).unwrap())
                     .unwrap_or_default();
 
-                let display_date = Paragraph::new(date_str)
+                Paragraph::new(date_str)
                     .block(input_block)
                     .render(input_area, buf);
 

@@ -2,7 +2,7 @@ use ratatui::{
     style::{
         Color, Modifier, Style,
         palette::{
-            material::GREEN,
+            material::{GRAY, GREEN},
             tailwind::{SLATE, YELLOW},
         },
     },
@@ -16,7 +16,9 @@ use uuid::Uuid;
 use crate::task_form::FormInput;
 
 const TEXT_FG_COLOR: Color = SLATE.c200;
-const COMPLETED_TEXT_FG_COLOR: Color = GREEN.c500;
+const COMPLETED_TEXT_FG_COLOR: Style = Style::new()
+    .fg(GRAY.c500)
+    .add_modifier(Modifier::CROSSED_OUT);
 const STAR_TEXT_FG_COLOR: Color = YELLOW.c200;
 pub const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
 
@@ -63,13 +65,13 @@ impl From<&Task> for ListItem<'_> {
         let line = match value.status {
             Status::Todo => {
                 if value.is_favorite {
-                    Line::styled(format!("  ✮ {}", value.title), STAR_TEXT_FG_COLOR)
+                    Line::styled(format!(" ✮ {}", value.title), STAR_TEXT_FG_COLOR)
                 } else {
-                    Line::styled(format!("  ☐ {}", value.title), TEXT_FG_COLOR)
+                    Line::styled(format!(" ☐ {}", value.title), TEXT_FG_COLOR)
                 }
             }
             Status::Completed => {
-                Line::styled(format!("  ✓ {}", value.title), COMPLETED_TEXT_FG_COLOR)
+                Line::styled(format!(" ✓ {}", value.title), COMPLETED_TEXT_FG_COLOR)
             }
         };
         ListItem::new(line)
