@@ -23,7 +23,7 @@ impl App {
             .title("Press <tab> to change focus, <C-Enter> to submit")
             .title_position(Position::Bottom)
             .title_alignment(Alignment::Center)
-            .title_style(Style::default().fg(Color::LightCyan));
+            .title_style(Style::default().fg(Color::White));
 
         let inner_area = popup_block.inner(popup_area);
 

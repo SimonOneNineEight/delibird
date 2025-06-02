@@ -159,7 +159,7 @@ impl TaskForm {
         if self.selected == field {
             return Style::default().fg(Color::LightYellow);
         }
-        Style::default().fg(Color::LightCyan)
+        Style::default().fg(Color::White)
     }
 
     pub fn get_cursor_style(&self, field: FormField) -> Style {

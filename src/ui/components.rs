@@ -17,7 +17,7 @@ impl Widget for &mut App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let wrapper_block = Block::default()
             .padding(Padding::symmetric(2, 1))
-            .style(Style::default().bg(Color::Black).fg(Color::LightCyan));
+            .style(Style::default().bg(Color::Black).fg(Color::White));
 
         let inner_area = wrapper_block.inner(area);
 
