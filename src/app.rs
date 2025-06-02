@@ -1,10 +1,12 @@
 use crate::{
-    date_input::DateInputMode,
-    event::{AppEvent, Event, EventHandler},
-    storage::Storage,
-    task::TaskList,
-    task_form::{FormField, FormInput, TaskForm},
+    core::{
+        Event, Storage,
+        events::{AppEvent, EventHandler},
+        task::TaskList,
+    },
+    ui::forms::{date_input::DateInputMode, task_form::TaskForm},
 };
+
 use ratatui::{
     DefaultTerminal,
     crossterm::event::{KeyCode, KeyEvent, KeyModifiers},
@@ -73,7 +75,9 @@ impl App {
             },
             Event::App(app_event) => match app_event {
                 AppEvent::Quit => self.quit(),
-                AppEvent::AddTask(task) => self.task_list.add_task(task),
+                AppEvent::AddTask(title, description, due_date) => {
+                    self.task_list.add_task(title, description, due_date)
+                }
             },
         }
         Ok(())
@@ -148,7 +152,9 @@ impl App {
     }
 
     pub fn add_task(&mut self) {
-        self.task_list.add_task(self.task_form.form_input.clone());
+        let task_data = self.task_form.to_task_data();
+        self.task_list
+            .add_task(task_data.title, task_data.description, task_data.due_date);
         self.task_form.reset_form_input();
         self.auto_save();
         self.current_screen = CurrentScreen::Normal;

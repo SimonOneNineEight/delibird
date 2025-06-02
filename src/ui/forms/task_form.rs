@@ -1,10 +1,10 @@
 use crossterm::event::KeyEvent;
 use ratatui::style::{Color, Style};
 use strum::{Display, EnumIter, IntoEnumIterator};
-use time::{Date, OffsetDateTime};
+use time::Date;
 use tui_textarea::TextArea;
 
-use crate::date_input::DateInput;
+use super::date_input::DateInput;
 
 #[derive(Debug)]
 pub struct TaskForm {
@@ -78,6 +78,13 @@ pub struct FormInput {
     pub description: TextArea<'static>,
     pub group: String,
     pub due_date: DateInput,
+}
+
+#[derive(Debug, Clone)]
+pub struct FormInputData {
+    pub title: String,
+    pub description: Vec<String>,
+    pub due_date: Date,
 }
 
 impl Default for FormInput {
@@ -160,5 +167,19 @@ impl TaskForm {
             return Style::default().bg(Color::White);
         }
         Style::default().bg(Color::Black)
+    }
+
+    pub fn to_task_data(&mut self) -> FormInputData {
+        FormInputData {
+            title: self.form_input.title.lines()[0].clone(),
+            description: self
+                .form_input
+                .description
+                .lines()
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
+            due_date: self.form_input.due_date.selected_date,
+        }
     }
 }

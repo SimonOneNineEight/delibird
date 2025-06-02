@@ -5,8 +5,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
-
-use crate::task_form::FormInput;
+use time::Date;
 
 /// The frequency at which tick events are emitted.
 const TICK_FPS: f64 = 30.0;
@@ -39,7 +38,7 @@ pub enum AppEvent {
     Quit,
 
     /// Tasks
-    AddTask(FormInput),
+    AddTask(String, Vec<String>, Date),
     // ToggleTask(Uuid),
     // EditTask(Uuid, String),
     // DeleteTask(Uuid),

@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use crate::task::Task;
+use super::task::task::Task;
 
 #[derive(Debug)]
 pub struct Storage {
