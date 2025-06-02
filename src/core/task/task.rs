@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 use time::{Date, OffsetDateTime};
 use uuid::Uuid;
 
+use crate::utils::date::get_today_with_fallbacks;
+
 const TEXT_FG_COLOR: Color = SLATE.c200;
 const COMPLETED_TEXT_FG_COLOR: Style = Style::new()
     .fg(GRAY.c500)
@@ -48,9 +50,7 @@ impl Task {
             status: Status::Todo,
             is_favorite: false,
             // group: None,
-            created_at: OffsetDateTime::now_local()
-                .unwrap_or_else(|_| OffsetDateTime::now_utc())
-                .date(),
+            created_at: get_today_with_fallbacks().0,
             completed_at: None,
             due_date: Some(due_date),
         }

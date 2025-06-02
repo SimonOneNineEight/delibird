@@ -1,6 +1,8 @@
 use ratatui::widgets::ListState;
 use time::Date;
 
+use crate::utils::date::get_today_with_fallbacks;
+
 use super::task::{Status, Task};
 
 #[derive(Debug, Default)]
@@ -30,6 +32,18 @@ impl TaskList {
 
     pub fn toggle_status(&mut self) {
         if let Some(i) = self.state.selected() {
+            let task = &mut self.task_list[i];
+
+            match task.status {
+                Status::Todo => {
+                    task.status = Status::Completed;
+                    task.completed_at = Some(get_today_with_fallbacks().0);
+                }
+                Status::Completed => {
+                    task.status = Status::Todo;
+                    task.completed_at = None;
+                }
+            }
             self.task_list[i].status = match self.task_list[i].status {
                 Status::Todo => Status::Completed,
                 Status::Completed => Status::Todo,

@@ -12,7 +12,7 @@ use ratatui::{
 use time::{Date, Duration, Month, OffsetDateTime, macros::format_description};
 use tui_textarea::TextArea;
 
-use crate::ui::get_center_rect;
+use crate::{ui::get_center_rect, utils::date::get_today_with_fallbacks};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DateInputMode {
@@ -26,14 +26,12 @@ pub struct DateInput {
     pub selected_date: Date,
     pub input_mode: DateInputMode,
     pub date_format: &'static str,
+    pub error_message: Option<String>,
 }
 
-impl DateInput {
-    pub fn new() -> Self {
-        let today = OffsetDateTime::now_local()
-            .unwrap_or_else(|_| OffsetDateTime::now_utc())
-            .date();
-
+impl Default for DateInput {
+    fn default() -> Self {
+        let (today, warning) = get_today_with_fallbacks();
         let mut input = TextArea::default();
 
         input.insert_str(
@@ -47,7 +45,14 @@ impl DateInput {
             selected_date: today,
             input_mode: DateInputMode::Text,
             date_format: "[year]-[month]-[day]",
+            error_message: warning,
         }
+    }
+}
+
+impl DateInput {
+    pub fn new() -> Self {
+        DateInput::default()
     }
 
     pub fn handle_input(&mut self, key: KeyEvent) {
