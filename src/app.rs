@@ -1,6 +1,7 @@
 use crate::{
     core::{
         Event, Storage,
+        error::{AppResult, ErrorState},
         events::{AppEvent, EventHandler},
         task::TaskList,
     },
@@ -31,6 +32,7 @@ pub struct App {
     pub current_screen: CurrentScreen,
     pub storage: Storage,
     pub task_form: TaskForm,
+    pub error_state: ErrorState,
 }
 
 impl App {
@@ -55,6 +57,7 @@ impl App {
             events: EventHandler::new(),
             current_screen: CurrentScreen::Normal,
             task_form: TaskForm::default(),
+            error_state: ErrorState::default(),
         })
     }
     /// Run the application's main loop.
@@ -141,13 +144,22 @@ impl App {
         Ok(app_dir.join("tasks.json"))
     }
 
-    pub fn save_tasks(&self) -> Result<(), String> {
+    pub fn save_tasks(&self) -> AppResult<()> {
         self.storage.save(&self.task_list.task_list)
     }
 
-    pub fn auto_save(&self) {
-        if let Err(err) = self.save_tasks() {
-            eprintln!("Failed to save task: {}", err);
+    pub fn auto_save(&mut self) {
+        match self.save_tasks() {
+            Ok(_) => {
+                if let Some(current_error) = &self.error_state.current_error {
+                    if current_error.is_storage_error() {
+                        self.error_state.clear_error();
+                    }
+                }
+            }
+            Err(error) => {
+                self.error_state.set_error(error);
+            }
         }
     }
 
@@ -183,7 +195,9 @@ impl App {
     ///
     /// The tick event is where you can update the state of your application with any logic that
     /// needs to be updated at a fixed frame rate. E.g. polling a server, updating an animation.
-    pub fn tick(&self) {}
+    pub fn tick(&mut self) {
+        self.error_state.update();
+    }
 
     /// Set running to false to quit the application.
     pub fn quit(&mut self) {
