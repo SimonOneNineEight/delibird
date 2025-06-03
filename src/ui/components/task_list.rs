@@ -27,18 +27,8 @@ impl App {
             // Iterate through all elements in the `items` and stylize them.
             let items: Vec<ListItem> = self
                 .task_list
-                .task_list
-                .iter()
-                .sorted_by(|a, b| {
-                    let a_completed = a.status == Status::Completed;
-                    let b_completed = b.status == Status::Completed;
-
-                    if a_completed != b_completed {
-                        return a_completed.cmp(&b_completed);
-                    }
-
-                    a.is_favorite.cmp(&b.is_favorite).reverse()
-                })
+                .get_sorted_tasks()
+                .into_iter()
                 .map(ListItem::from)
                 .collect();
 

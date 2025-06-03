@@ -30,7 +30,7 @@ pub enum Status {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Task {
-    id: Uuid,
+    pub id: Uuid,
     pub title: String,
     pub description: Vec<String>,
     pub status: Status,
