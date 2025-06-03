@@ -7,6 +7,7 @@ use ratatui::{
 
 use crate::app::App;
 
+pub mod error_display;
 pub mod footer;
 pub mod messages;
 pub mod popups;
@@ -33,6 +34,7 @@ impl Widget for &mut App {
         self.render_task_list(list_area, buf);
         self.render_detail(detail_area, buf);
         self.render_footer(footer_area, buf);
+        self.render_error_state(area, buf);
 
         if self.task_form.is_open {
             self.render_add_task_popup(area, buf);

@@ -20,6 +20,7 @@ pub enum CurrentScreen {
     Normal,
     Create,
     Editing,
+    ErrorPopup,
 }
 
 /// Application.
@@ -126,6 +127,17 @@ impl App {
                 KeyCode::Tab => self.task_form.select_next(),
                 _ => self.task_form.input(key_event),
             },
+
+            CurrentScreen::ErrorPopup => {
+                if self.error_state.should_show_popup() {
+                    match key_event.code {
+                        KeyCode::Esc => {
+                            self.error_state.dismiss();
+                        }
+                        _ => {}
+                    }
+                }
+            }
 
             CurrentScreen::Editing => {}
         }
