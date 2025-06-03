@@ -12,7 +12,11 @@ use ratatui::{
 use time::{Date, Duration, Month, OffsetDateTime, macros::format_description};
 use tui_textarea::TextArea;
 
-use crate::{ui::get_center_rect, utils::date::get_today_with_fallbacks};
+use crate::{
+    core::{error::AppResult, validation::DateValidator},
+    ui::get_center_rect,
+    utils::date::get_today_with_fallbacks,
+};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum DateInputMode {
@@ -69,14 +73,15 @@ impl DateInput {
         }
     }
 
+    fn validate_current_input(&self) -> AppResult<Date> {
+        DateValidator::validate_date_input(&self.input.lines()[0])
+    }
+
     fn handle_text_input(&mut self, key: KeyEvent) {
         match key.code {
             KeyCode::Char('c' | 'C') if key.modifiers == KeyModifiers::CONTROL => {
                 self.input_mode = DateInputMode::Calendar;
-                if let Ok(date) = Date::parse(
-                    &self.input.lines()[0],
-                    &time::format_description::parse(self.date_format).unwrap(),
-                ) {
+                if let Ok(date) = self.validate_current_input() {
                     self.selected_date = date;
                 }
             }
@@ -85,6 +90,7 @@ impl DateInput {
             }
         }
     }
+
     fn handle_calendar_input(&mut self, key: KeyEvent) {
         match key.code {
             KeyCode::Esc => {

@@ -4,6 +4,7 @@ use crate::{
         error::{AppResult, ErrorState},
         events::{AppEvent, EventHandler},
         task::TaskList,
+        validation::TaskValidator,
     },
     ui::forms::{date_input::DateInputMode, task_form::TaskForm},
 };
@@ -20,7 +21,6 @@ pub enum CurrentScreen {
     Normal,
     Create,
     Editing,
-    ErrorPopup,
 }
 
 /// Application.
@@ -89,6 +89,18 @@ impl App {
 
     /// Handles the key events and updates the state of [`App`].
     pub fn handle_key_event(&mut self, key_event: KeyEvent) -> color_eyre::Result<()> {
+        if self.error_state.should_show_popup() {
+            match key_event.code {
+                KeyCode::Esc => {
+                    self.error_state.dismiss();
+                    return Ok(());
+                }
+                _ => {
+                    return Ok(());
+                }
+            }
+        }
+
         match self.current_screen {
             CurrentScreen::Normal => {
                 match key_event.code {
@@ -128,17 +140,6 @@ impl App {
                 _ => self.task_form.input(key_event),
             },
 
-            CurrentScreen::ErrorPopup => {
-                if self.error_state.should_show_popup() {
-                    match key_event.code {
-                        KeyCode::Esc => {
-                            self.error_state.dismiss();
-                        }
-                        _ => {}
-                    }
-                }
-            }
-
             CurrentScreen::Editing => {}
         }
         Ok(())
@@ -177,11 +178,29 @@ impl App {
 
     pub fn add_task(&mut self) {
         let task_data = self.task_form.to_task_data();
-        self.task_list
-            .add_task(task_data.title, task_data.description, task_data.due_date);
-        self.task_form.reset_form_input();
-        self.auto_save();
-        self.current_screen = CurrentScreen::Normal;
+
+        match TaskValidator::validate_task_data(
+            &task_data.title,
+            &task_data.description,
+            task_data.due_date,
+        ) {
+            Ok((validated_title, validated_description, validated_date)) => {
+                self.task_list
+                    .add_task(validated_title, validated_description, validated_date);
+                self.task_form.reset_form_input();
+                self.auto_save();
+                self.current_screen = CurrentScreen::Normal;
+
+                if let Some(current_error) = &self.error_state.current_error {
+                    if current_error.is_validation_error() {
+                        self.error_state.clear_error();
+                    }
+                }
+            }
+            Err(validation_error) => {
+                self.error_state.set_error(validation_error);
+            }
+        }
     }
 
     pub fn toggle_task(&mut self) {

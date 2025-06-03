@@ -20,6 +20,9 @@ pub enum AppError {
 
     // Input Validation Errors
     EmptyTaskTitle,
+    InvalidTitle {
+        reason: String,
+    },
     InvalidDate {
         input: String,
         expected_format: String,
@@ -49,6 +52,7 @@ impl AppError {
     pub fn severity(&self) -> ErrorSeverity {
         match self {
             AppError::EmptyTaskTitle
+            | AppError::InvalidTitle { .. }
             | AppError::InvalidDate { .. }
             | AppError::InvalidDescription { .. } => ErrorSeverity::Warning,
             AppError::SaveFailed { .. }
@@ -75,7 +79,7 @@ impl AppError {
             AppError::FilePermissions { path } => {
                 format!("No permission to write to: {}", path)
             }
-            AppError::EmptyTaskTitle => "⚠️ Task title cannot be empty".to_string(),
+            AppError::EmptyTaskTitle => "Task title cannot be empty".to_string(),
             AppError::InvalidDate {
                 input,
                 expected_format,
@@ -84,6 +88,9 @@ impl AppError {
                     "Invalid date '{}'. Expected format: {}",
                     input, expected_format
                 )
+            }
+            AppError::InvalidTitle { reason } => {
+                format!("Invalid Title: {}", reason)
             }
             AppError::InvalidDescription { reason } => {
                 format!("Invalid description: {}", reason)
