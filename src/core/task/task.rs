@@ -10,7 +10,7 @@ use ratatui::{
     widgets::ListItem,
 };
 use serde::{Deserialize, Serialize};
-use time::{Date, OffsetDateTime};
+use time::Date;
 use uuid::Uuid;
 
 use crate::utils::date::get_today_with_fallbacks;

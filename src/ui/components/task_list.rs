@@ -5,9 +5,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, StatefulWidget, Widget},
 };
 
-use itertools::Itertools;
-
-use crate::{app::App, core::task::task::Status};
+use crate::app::App;
 
 const SELECTED_STYLE: Style = Style::new().bg(SLATE.c800).add_modifier(Modifier::BOLD);
 

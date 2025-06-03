@@ -35,7 +35,7 @@ impl Default for DateInput {
         let mut input = TextArea::default();
 
         input.insert_str(
-            &today
+            today
                 .format(format_description!("[year]-[month]-[day]"))
                 .unwrap(),
         );
@@ -133,14 +133,12 @@ impl DateInput {
                             self.selected_date = date;
                         }
                     }
-                } else {
-                    if let Ok(date) = Date::from_calendar_date(
-                        self.selected_date.year() - 1,
-                        Month::December,
-                        self.selected_date.day().min(31),
-                    ) {
-                        self.selected_date = date;
-                    }
+                } else if let Ok(date) = Date::from_calendar_date(
+                    self.selected_date.year() - 1,
+                    Month::December,
+                    self.selected_date.day().min(31),
+                ) {
+                    self.selected_date = date;
                 }
             }
 
@@ -156,14 +154,12 @@ impl DateInput {
                             self.selected_date = date;
                         }
                     }
-                } else {
-                    if let Ok(date) = Date::from_calendar_date(
-                        self.selected_date.year() + 1,
-                        Month::January,
-                        self.selected_date.day().min(31),
-                    ) {
-                        self.selected_date = date;
-                    }
+                } else if let Ok(date) = Date::from_calendar_date(
+                    self.selected_date.year() + 1,
+                    Month::January,
+                    self.selected_date.day().min(31),
+                ) {
+                    self.selected_date = date;
                 }
             }
 

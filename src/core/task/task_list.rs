@@ -1,10 +1,8 @@
-use std::ops::IndexMut;
-
 use ratatui::widgets::ListState;
 use time::Date;
 use uuid::Uuid;
 
-use crate::{ui::components::task_list, utils::date::get_today_with_fallbacks};
+use crate::utils::date::get_today_with_fallbacks;
 
 use super::task::{Status, Task};
 
