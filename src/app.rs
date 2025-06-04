@@ -180,26 +180,21 @@ impl App {
     pub fn add_task(&mut self) {
         let task_data = self.task_form.to_task_data();
 
-        match TaskValidator::validate_task_data(
+        match TaskValidator::validate_all_task_field(
             &task_data.title,
             &task_data.description,
             task_data.due_date,
         ) {
-            Ok((validated_title, validated_description, validated_date)) => {
+            Ok(_) => {
                 self.task_list
-                    .add_task(validated_title, validated_description, validated_date);
+                    .add_task(task_data.title, task_data.description, task_data.due_date);
                 self.task_form.reset_form_input();
                 self.auto_save();
                 self.current_screen = CurrentScreen::Normal;
-
-                if let Some(current_error) = &self.error_state.current_error {
-                    if current_error.is_validation_error() {
-                        self.error_state.clear_error();
-                    }
-                }
+                self.task_form.clear_field_errors();
             }
             Err(validation_error) => {
-                self.error_state.set_error(validation_error);
+                self.task_form.field_errors = validation_error;
             }
         }
     }

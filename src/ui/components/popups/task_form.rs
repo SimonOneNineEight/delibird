@@ -7,6 +7,7 @@ use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
     style::{Color, Style},
+    text::Line,
     widgets::{Block, BorderType, Borders, Clear, Padding, Widget, block::Position},
 };
 use tui_textarea::TextArea;
@@ -20,7 +21,7 @@ impl App {
         let popup_block = Block::default()
             .style(Style::default().bg(Color::Black).fg(Color::White))
             .padding(Padding::symmetric(1, 1))
-            .title("Press <tab> to change focus, <C-Enter> to submit")
+            .title("Press <tab> to change focus, <C-s> to submit")
             .title_position(Position::Bottom)
             .title_alignment(Alignment::Center)
             .title_style(Style::default().fg(Color::White));
@@ -56,12 +57,22 @@ impl App {
     ) {
         let border_style = self.task_form.get_input_border_style(field);
         let cursor_style = self.task_form.get_cursor_style(field);
+        let error_message = self.task_form.field_errors.get(&field);
 
-        let block = Block::bordered()
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
-            .title(title)
-            .border_style(border_style);
+        let block = match error_message {
+            Some(message) => Block::bordered()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .title(Line::from(title).left_aligned())
+                .title(Line::from(message.to_string()).right_aligned())
+                .border_style(border_style),
+            None => Block::bordered()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .title(Line::from(title).left_aligned())
+                .title(Line::from("top right").right_aligned())
+                .border_style(border_style),
+        };
 
         let textarea = self
             .task_form
@@ -77,6 +88,7 @@ impl App {
     pub fn render_popup_form_date(&mut self, total_area: Rect, input_area: Rect, buf: &mut Buffer) {
         let border_style = self.task_form.get_input_border_style(FormField::DueDate);
         let cursor_style = self.task_form.get_cursor_style(FormField::DueDate);
+        let field_error = self.task_form.field_errors.get(&FormField::DueDate);
 
         self.task_form.form_input.due_date.render(
             total_area,
@@ -84,6 +96,7 @@ impl App {
             buf,
             border_style,
             cursor_style,
+            field_error,
         );
     }
 }

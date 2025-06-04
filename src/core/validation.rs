@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use time::{Date, Duration, format_description, macros::format_description};
 use uuid::Uuid;
 
-use crate::utils::date::get_today_with_fallbacks;
+use crate::{ui::forms::task_form::FormField, utils::date::get_today_with_fallbacks};
 
 use super::error::AppError;
 
@@ -90,6 +92,32 @@ impl TaskValidator {
             Ok(task_id)
         } else {
             Err(AppError::TaskNotFound { id: task_id })
+        }
+    }
+
+    pub fn validate_all_task_field(
+        title: &str,
+        description: &[String],
+        due_date: Date,
+    ) -> Result<(), HashMap<FormField, String>> {
+        let mut field_errors = HashMap::<FormField, String>::new();
+
+        if let Err(app_error) = TaskValidator::validate_title(title) {
+            field_errors.insert(FormField::Title, app_error.user_message());
+        };
+
+        if let Err(app_error) = TaskValidator::validate_description(description) {
+            field_errors.insert(FormField::Description, app_error.user_message());
+        }
+
+        if let Err(app_error) = TaskValidator::validate_due_date(due_date) {
+            field_errors.insert(FormField::DueDate, app_error.user_message());
+        }
+
+        if field_errors.is_empty() {
+            Ok(())
+        } else {
+            Err(field_errors)
         }
     }
 }

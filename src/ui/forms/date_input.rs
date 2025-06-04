@@ -207,16 +207,28 @@ impl DateInput {
         &mut self,
         total_area: Rect,
         input_area: Rect,
+
         buf: &mut Buffer,
         border_style: Style,
         cursor_style: Style,
+        error: Option<&String>,
     ) {
-        let input_block = Block::default()
-            .title(Line::from("Due Date: (YYYY-MM-DD)").left_aligned())
-            .title(Line::from("Press <Ctrl-c> for calendar view").right_aligned())
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
-            .border_style(border_style);
+        let input_block = match error {
+            Some(message) => Block::default()
+                .title(Line::from("Due Date: (YYYY-MM-DD)").left_aligned())
+                .title(Line::from(message.to_string()).right_aligned())
+                .title_bottom(Line::from("Press <Ctrl-c> for calendar view").right_aligned())
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(border_style),
+            None => Block::default()
+                .title(Line::from("Due Date: (YYYY-MM-DD)").left_aligned())
+                .title_bottom(Line::from("Press <Ctrl-c> for calendar view").right_aligned())
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(border_style),
+        };
+
         match self.input_mode {
             DateInputMode::Text => {
                 self.input.set_block(input_block);

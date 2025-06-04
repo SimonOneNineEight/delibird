@@ -1,8 +1,12 @@
+use std::collections::HashMap;
+
 use crossterm::event::KeyEvent;
 use ratatui::style::{Color, Style};
 use strum::{Display, EnumIter, IntoEnumIterator};
 use time::Date;
 use tui_textarea::TextArea;
+
+use crate::core::{error::AppError, task::Task, validation::TaskValidator};
 
 use super::date_input::DateInput;
 
@@ -11,9 +15,10 @@ pub struct TaskForm {
     pub is_open: bool,
     pub selected: FormField,
     pub form_input: FormInput,
+    pub field_errors: HashMap<FormField, String>,
 }
 
-#[derive(Debug, EnumIter, Display, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, EnumIter, Display, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum FormField {
     Title,
     DueDate,
@@ -104,6 +109,7 @@ impl Default for TaskForm {
             is_open: false,
             selected: FormField::Title,
             form_input: FormInput::default(),
+            field_errors: HashMap::new(),
         }
     }
 }
@@ -156,7 +162,56 @@ impl TaskForm {
         self.selected = FormField::Title;
     }
 
+    pub fn validate_current_field(&mut self) -> Result<(), (FormField, String)> {
+        match self.selected {
+            FormField::Title => {
+                let title = &self.form_input.title.lines()[0];
+                match TaskValidator::validate_title(title) {
+                    Ok(_) => Ok(()),
+                    Err(app_error) => Err((FormField::Title, app_error.user_message())),
+                }
+            }
+            FormField::DueDate => {
+                let selected_date = self.form_input.due_date.selected_date;
+
+                match TaskValidator::validate_due_date(selected_date) {
+                    Ok(_) => Ok(()),
+                    Err(app_error) => Err((FormField::DueDate, app_error.user_message())),
+                }
+            }
+            FormField::Description => {
+                let description: Vec<String> = self
+                    .form_input
+                    .description
+                    .lines()
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect();
+
+                match TaskValidator::validate_description(&description) {
+                    Ok(_) => Ok(()),
+                    Err(app_error) => Err((FormField::Description, app_error.user_message())),
+                }
+            }
+        }
+    }
+
+    pub fn validate_all_field(&mut self) -> Result<(), HashMap<FormField, String>> {
+        let title = &self.form_input.title.lines()[0];
+        let description = self.form_input.description.lines();
+        let due_date = self.form_input.due_date.selected_date;
+
+        TaskValidator::validate_all_task_field(title, description, due_date)
+    }
+
+    pub fn clear_field_errors(&mut self) {
+        self.field_errors = HashMap::new();
+    }
+
     pub fn get_input_border_style(&self, field: FormField) -> Style {
+        if self.field_errors.contains_key(&field) {
+            return Style::default().fg(Color::Red);
+        }
         if self.selected == field {
             return Style::default().fg(Color::LightYellow);
         }
