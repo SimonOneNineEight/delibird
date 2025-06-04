@@ -34,6 +34,7 @@ pub struct App {
     pub storage: Storage,
     pub task_form: TaskForm,
     pub error_state: ErrorState,
+    pub show_delete_popup: bool,
 }
 
 impl App {
@@ -52,13 +53,14 @@ impl App {
 
         Ok(Self {
             running: true,
-            show_helper_popup: false,
             task_list,
             storage,
             events: EventHandler::new(),
-            current_screen: CurrentScreen::Normal,
             task_form: TaskForm::default(),
+            current_screen: CurrentScreen::Normal,
             error_state: ErrorState::default(),
+            show_helper_popup: false,
+            show_delete_popup: false,
         })
     }
     /// Run the application's main loop.
@@ -101,6 +103,22 @@ impl App {
             }
         }
 
+        if self.show_delete_popup && self.task_list.selected_task_id.is_some() {
+            match key_event.code {
+                KeyCode::Esc | KeyCode::Char('n') | KeyCode::Char('N') => {
+                    self.show_delete_popup = false;
+                    return Ok(());
+                }
+                KeyCode::Char('y') | KeyCode::Char('Y') => {
+                    self.delete_selected_task();
+                    return Ok(());
+                }
+                _ => {
+                    return Ok(());
+                }
+            }
+        }
+
         match self.current_screen {
             CurrentScreen::Normal => {
                 match key_event.code {
@@ -115,7 +133,11 @@ impl App {
                     }
                     KeyCode::Char('j') => self.task_list.select_next(),
                     KeyCode::Char('k') => self.task_list.select_previous(),
-                    KeyCode::Char('d') => self.delete_selected_task(),
+                    KeyCode::Char('d') => {
+                        if self.task_list.selected_task_id.is_some() {
+                            self.show_delete_popup = true;
+                        }
+                    }
                     KeyCode::Char('h') => self.show_helper_popup = true,
                     KeyCode::Char('s') => self.toggle_selected_favorite(),
                     KeyCode::Enter => self.toggle_task(),
@@ -206,6 +228,7 @@ impl App {
 
     pub fn delete_selected_task(&mut self) {
         self.task_list.delete_selected_task();
+        self.show_delete_popup = false;
         self.auto_save();
     }
 

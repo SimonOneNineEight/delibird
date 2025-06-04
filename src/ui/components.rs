@@ -39,6 +39,7 @@ impl Widget for &mut App {
             self.render_add_task_popup(area, buf);
         }
 
+        self.render_delete_popup(area, buf);
         self.render_error_state(area, buf);
     }
 }
