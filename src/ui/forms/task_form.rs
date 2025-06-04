@@ -153,6 +153,7 @@ impl TaskForm {
 
     pub fn reset_form_input(&mut self) {
         self.form_input = FormInput::default();
+        self.selected = FormField::Title;
     }
 
     pub fn get_input_border_style(&self, field: FormField) -> Style {

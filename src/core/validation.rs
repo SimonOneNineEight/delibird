@@ -56,14 +56,14 @@ impl TaskValidator {
     pub fn validate_due_date(date: Date) -> ValidationResult<Date> {
         let today = get_today_with_fallbacks().0;
 
-        if date < today.saturating_sub(Duration::days(365)) {
+        if date < today {
             return Err(AppError::InvalidDate {
                 input: date.to_string(),
-                expected_format: "Date cannot be more than 1 year in the past".to_string(),
+                expected_format: "Date cannot be in the past".to_string(),
             });
         }
 
-        if date < today.saturating_add(Duration::days(365)) {
+        if date > today.saturating_add(Duration::days(365)) {
             return Err(AppError::InvalidDate {
                 input: date.to_string(),
                 expected_format: "Date cannot be more than 1 year in the future".to_string(),

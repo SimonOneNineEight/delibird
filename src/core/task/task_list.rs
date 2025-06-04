@@ -157,7 +157,9 @@ impl TaskList {
         }
 
         let current_index = Self::find_task_display_index(&tasks, selected_id).unwrap_or(0);
-        let next_index = (current_index - 1) % tasks.len();
+
+        // add tasks len to prevent current_index to be 0
+        let next_index = (current_index + tasks.len() - 1) % tasks.len();
 
         self.selected_task_id = Some(tasks[next_index].id);
         self.sync_selection_state();

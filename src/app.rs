@@ -130,6 +130,7 @@ impl App {
                     } else {
                         self.current_screen = CurrentScreen::Normal;
                         self.task_form.toggle_task_form();
+                        self.task_form.reset_form_input();
                     }
                 }
                 KeyCode::Char('s') if key_event.modifiers == KeyModifiers::CONTROL => {
